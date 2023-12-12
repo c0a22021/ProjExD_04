@@ -12,6 +12,7 @@ MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 
 
 def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
+
     """
     オブジェクトが画面内か画面外かを判定し，真理値タプルを返す
     引数 obj：オブジェクト（爆弾，こうかとん，ビーム）SurfaceのRect
@@ -265,6 +266,10 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT:
+                bird.speed = 20
+            if event.type == pg.KEYDOWN and event.key != pg.K_LSHIFT:
+                bird.speed = 10
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -290,6 +295,8 @@ def main():
             pg.display.update()
             time.sleep(2)
             return
+        
+        
 
         bird.update(key_lst, screen)
         beams.update()
