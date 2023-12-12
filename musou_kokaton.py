@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import time
+from typing import Any
 import pygame as pg
 
 
@@ -234,7 +235,7 @@ class Score:
     def __init__(self):
         self.font = pg.font.Font(None, 50)
         self.color = (0, 0, 255)
-        self.value = 0
+        self.value = 1000
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         self.rect = self.image.get_rect()
         self.rect.center = 100, HEIGHT-50
@@ -244,20 +245,41 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+BLACK = (0, 0, 0)
+class Gravity(pg.sprite.Sprite):
+    def __init__(self, life: int):
+        super().__init__()
+        self.image = pg.Surface((WIDTH, HEIGHT))
+        pg.draw.rect(self.image, BLACK, (0, 0, 1600, 900))
+        self.image.set_alpha(200)
+        self.rect = self.image.get_rect()
+        self.life = life
+
+    def update(self):
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load(f"{MAIN_DIR}/fig/pg_bg.jpg")
     score = Score()
 
+
     bird = Bird(3, (900, 400))
     bombs = pg.sprite.Group()
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    gravitys = pg.sprite.Group()
+    gravity = Gravity(400)
 
     tmr = 0
     clock = pg.time.Clock()
+    gravity_active = False
+
     while True:
         key_lst = pg.key.get_pressed()
         for event in pg.event.get():
@@ -265,6 +287,25 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+
+            #Gravity
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                gravitys.add(gravity)
+                gravity_active = True
+                score.value -= 200
+
+        
+            for bomb in pg.sprite.groupcollide(bombs, gravitys, True, False).keys():
+                exps.add(Explosion(bomb, 50)) # 爆発エフェクト
+                score.value += 1
+
+            for emy in pg.sprite.groupcollide(emys, gravitys, True, False).keys():
+                exps.add(Explosion(emy, 50)) # 爆発エフェクト
+                score.value += 10
+
+
+
+            
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -301,6 +342,10 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
+        gravitys.draw(screen)
+        gravitys.update(
+
+        )
         pg.display.update()
         tmr += 1
         clock.tick(50)
