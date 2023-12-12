@@ -144,6 +144,7 @@ class Bomb(pg.sprite.Sprite):
         self.rect.centerx = emy.rect.centerx
         self.rect.centery = emy.rect.centery+emy.rect.height/2
         self.speed = 6
+        self.state = "active"
 
     def update(self):
         """
@@ -259,13 +260,31 @@ class Score:
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         screen.blit(self.image, self.rect)
 
-
+class emp(pg.sprite.Sprite):
+    def __init__(self, emy:"Enemy", bom:"Bomb"):
+        score = Score()
+        while True:
+            key_lst = pg.key.get_pressed()
+            for event in pg.event.get():
+                if event.type == pg.KEYDOWN and event.key == pg.K_e and score >20:
+                    score.value -= 20
+                    super().__init__()
+                    emy = pg.sprite.Group()
+                    bom = pg.sprite.Group()
+                    emp_s = random.randint(1600, 900)
+                    color = "yellow"
+                    self.image = pg.Surface(emp_s, emp_s)
+                    self.rect = self.image.get_rect()
+                    pg.draw.rect(self.image, color, (emp_s, emp_s), tmr = 1)
+                    emy.interval = math.inf
+                    emy.image = pg.transform.laplacian(emy.image)
+                    bom.speed /= 2 
+                    bom.state = "inactive"
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load(f"{MAIN_DIR}/fig/pg_bg.jpg")
     score = Score()
-
     bird = Bird(3, (900, 400))
     bombs = pg.sprite.Group()
     beams = pg.sprite.Group()
